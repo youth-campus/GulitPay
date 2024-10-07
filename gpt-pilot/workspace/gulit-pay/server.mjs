@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
+import schedule from 'node-schedule';
 dotenv.config();
 
 console.log('Server starting...');
@@ -27,6 +28,31 @@ const passwordResetTokens = {};
 const savingsAccounts = [];
 
 const JWT_SECRET = process.env.JWT_SECRET || 'e5d1f8e2b3c4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0'; // INPUT_REQUIRED {JWT_SECRET: Secure JWT secret key}
+
+const INTEREST_RATES = {
+  'Gullit Regular Saving Account': 0.07,
+  'SME Business Account': 0.07,
+  'Commercial Account': 0.07,
+  'Etege Women Entrepreneurs Account': 0.07
+};
+
+const calculateInterest = (balance, rate) => {
+  const dailyRate = rate / 365;
+  return balance * dailyRate;
+};
+
+const applyInterestToAllAccounts = () => {
+  console.log('Applying interest to all accounts');
+  savingsAccounts.forEach(account => {
+    const interestRate = INTEREST_RATES[account.accountType] || 0;
+    const interest = calculateInterest(account.balance, interestRate);
+    account.balance += interest;
+    account.lastInterestApplied = new Date();
+    console.log(`Applied ${interest.toFixed(2)} ETB interest to account ${account.accountNumber}`);
+  });
+};
+
+schedule.scheduleJob('0 0 * * *', applyInterestToAllAccounts);
 
 app.post('/api/register', (req, res) => {
   const { username, email, password, firstName, lastName, dateOfBirth, phoneNumber } = req.body;
@@ -177,7 +203,16 @@ app.get('/api/savings-accounts', verifyToken, (req, res) => {
 app.get('/api/savings-accounts/:id', verifyToken, (req, res) => {
   const account = savingsAccounts.find(acc => acc.id === req.params.id && acc.userId === req.userId);
   if (account) {
-    res.json(account);
+    const interestRate = INTEREST_RATES[account.accountType] || 0;
+    const lastApplied = account.lastInterestApplied || account.createdAt;
+    const daysSinceLastApplication = Math.floor((new Date() - new Date(lastApplied)) / (1000 * 60 * 60 * 24));
+    const projectedInterest = calculateInterest(account.balance, interestRate) * daysSinceLastApplication;
+    res.json({
+      ...account,
+      interestRate,
+      projectedInterest,
+      lastInterestApplied: lastApplied
+    });
   } else {
     res.status(404).json({ message: 'Account not found' });
   }
@@ -201,6 +236,32 @@ app.delete('/api/savings-accounts/:id', verifyToken, (req, res) => {
   } else {
     res.status(404).json({ message: 'Account not found' });
   }
+});
+
+app.post('/api/savings-accounts/:id/transaction', verifyToken, (req, res) => {
+  const { id } = req.params;
+  const { type, amount } = req.body;
+
+  const account = savingsAccounts.find(acc => acc.id === id && acc.userId === req.userId);
+
+  if (!account) {
+    return res.status(404).json({ message: 'Account not found' });
+  }
+
+  if (type === 'deposit') {
+    account.balance += parseFloat(amount);
+  } else if (type === 'withdrawal') {
+    if (account.balance < parseFloat(amount)) {
+      return res.status(400).json({ message: 'Insufficient funds' });
+    }
+    account.balance -= parseFloat(amount);
+  } else {
+    return res.status(400).json({ message: 'Invalid transaction type' });
+  }
+
+  account.updatedAt = new Date();
+
+  res.json(account);
 });
 
 // Error logging

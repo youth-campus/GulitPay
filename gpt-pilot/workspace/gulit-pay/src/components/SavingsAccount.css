@@ -41,3 +41,45 @@
   color: green;
   margin-bottom: 10px;
 }
+
+.transaction-form {
+  margin-top: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.transaction-form select,
+.transaction-form input,
+.transaction-form button {
+  width: 100%;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+.transaction-form button {
+  background-color: #4CAF50;
+  color: white;
+  border: none;
+  cursor: pointer;
+}
+
+.transaction-form button:hover {
+  background-color: #45a049;
+}
+
+.account-details {
+  background-color: #f0f0f0;
+  border-radius: 5px;
+  padding: 15px;
+  margin-top: 20px;
+}
+
+.account-details h3 {
+  margin-top: 0;
+}
+
+.account-details p {
+  margin: 5px 0;
+}
