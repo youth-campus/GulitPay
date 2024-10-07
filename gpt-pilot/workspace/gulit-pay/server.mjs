@@ -8,16 +8,23 @@ import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 dotenv.config();
 
+console.log('Server starting...');
+
 const app = express();
 const port = 3001;
 
 app.use(cors());
 app.use(bodyParser.json());
 
+app.use((req, res, next) => {
+  console.log(`Received ${req.method} request for ${req.url}`);
+  next();
+});
+
 // This is a temporary in-memory storage. In a real application, you'd use a database.
 const users = [];
 const passwordResetTokens = {};
-let savingsAccounts = [];
+const savingsAccounts = [];
 
 const JWT_SECRET = process.env.JWT_SECRET || 'e5d1f8e2b3c4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0'; // INPUT_REQUIRED {JWT_SECRET: Secure JWT secret key}
 
@@ -76,8 +83,6 @@ app.post('/api/forgot-password', (req, res) => {
     userId: user.username,
     expiry: resetTokenExpiry
   };
-
-  const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
 
   res.json({ message: 'Password reset link has been sent to your email' });
 });
@@ -204,6 +209,17 @@ app.use((err, req, res, next) => {
   res.status(500).send('Something broke!');
 });
 
+app.get('/api/test', (req, res) => {
+  console.log('Test route accessed');
+  res.json({ message: 'Server is running' });
+});
+
 app.listen(port, () => {
+  console.log('Routes registered:');
+  app._router.stack.forEach(function(r){
+    if (r.route && r.route.path){
+      console.log(r.route.stack[0].method.toUpperCase() + ' ' + r.route.path);
+    }
+  });
   console.log(`Server running on port ${port}`);
 });

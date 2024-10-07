@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './SavingsAccount.css';
 
-// Add this helper function at the top of the file
 const formatCurrency = (amount) => {
   return new Intl.NumberFormat('en-ET', { style: 'currency', currency: 'ETB' }).format(amount);
 };
@@ -20,15 +19,12 @@ const SavingsAccount = () => {
   const fetchAccounts = async () => {
     try {
       const token = localStorage.getItem('token');
-      console.log('Token from localStorage:', token);
       const response = await axios.get('http://localhost:3001/api/savings-accounts', {
         headers: { Authorization: `Bearer ${token}` }
       });
-      console.log('API response:', response.data);
       setAccounts(response.data);
     } catch (err) {
-      console.error('Error fetching savings accounts:', err.message);
-      console.error('Error details:', err.response ? err.response.data : 'No response data');
+      console.error('Error fetching savings accounts:', err.message, err.stack);
       setError('Failed to fetch accounts');
     }
   };
