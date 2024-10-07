@@ -20,12 +20,15 @@ const SavingsAccount = () => {
   const fetchAccounts = async () => {
     try {
       const token = localStorage.getItem('token');
+      console.log('Token from localStorage:', token);
       const response = await axios.get('http://localhost:3001/api/savings-accounts', {
         headers: { Authorization: `Bearer ${token}` }
       });
+      console.log('API response:', response.data);
       setAccounts(response.data);
     } catch (err) {
-      console.error('Error fetching savings accounts:', err.message, err.stack);
+      console.error('Error fetching savings accounts:', err.message);
+      console.error('Error details:', err.response ? err.response.data : 'No response data');
       setError('Failed to fetch accounts');
     }
   };

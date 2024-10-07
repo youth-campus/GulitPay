@@ -174,6 +174,12 @@ app.post('/api/savings-accounts', verifyToken, (req, res) => {
   res.status(201).json(newAccount);
 });
 
+app.get('/api/savings-accounts', verifyToken, (req, res) => {
+  console.log('GET /api/savings-accounts route accessed');
+  console.log('User ID from token:', req.userId);
+  res.json(savingsAccounts.filter(acc => acc.userId === req.userId));
+});
+
 app.get('/api/savings-accounts/:id', verifyToken, (req, res) => {
   const account = savingsAccounts.find(acc => acc.id === req.params.id && acc.userId === req.userId);
   if (account) {
