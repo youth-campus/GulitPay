@@ -4,7 +4,6 @@ import bodyParser from 'body-parser';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import { v4 as uuidv4 } from 'uuid';
 dotenv.config();
@@ -27,7 +26,6 @@ app.post('/api/register', (req, res) => {
 
   // Check if user already exists
   if (users.find(user => user.username === username || user.email === email)) {
-    console.log(`Registration attempt failed: Username or email already exists.`);
     return res.status(400).json({ message: 'Username or email already exists' });
   }
 
@@ -81,9 +79,6 @@ app.post('/api/forgot-password', (req, res) => {
 
   const resetUrl = `http://localhost:5173/reset-password/${resetToken}`;
 
-  // In a real application, you would send an email here
-  console.log(`Password reset link: ${resetUrl}`);
-
   res.json({ message: 'Password reset link has been sent to your email' });
 });
 
@@ -111,21 +106,16 @@ app.post('/api/reset-password', (req, res) => {
 
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
-  console.log('Auth header:', authHeader);
   const token = authHeader && authHeader.split(' ')[1];
-  console.log('Extracted token:', token);
 
   if (!token) {
-    console.log('No token provided');
     return res.status(403).json({ message: 'No token provided' });
   }
 
   jwt.verify(token, JWT_SECRET, (err, decoded) => {
     if (err) {
-      console.log('Token verification error:', err);
       return res.status(401).json({ message: 'Unauthorized' });
     }
-    console.log('Decoded token:', decoded);
     req.userId = decoded.username;
     next();
   });
@@ -175,9 +165,8 @@ app.post('/api/savings-accounts', verifyToken, (req, res) => {
 });
 
 app.get('/api/savings-accounts', verifyToken, (req, res) => {
-  console.log('GET /api/savings-accounts route accessed');
-  console.log('User ID from token:', req.userId);
-  res.json(savingsAccounts.filter(acc => acc.userId === req.userId));
+  const userAccounts = savingsAccounts.filter(account => account.userId === req.userId);
+  res.json(userAccounts);
 });
 
 app.get('/api/savings-accounts/:id', verifyToken, (req, res) => {
