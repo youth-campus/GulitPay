@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiClient, getAuthHeaders } from '../utils/api';
+import { useInterval } from 'react-use';
 import './SavingsAccount.css';
 
 const formatCurrency = (amount) => {
@@ -19,6 +20,18 @@ const SavingsAccount = () => {
   useEffect(() => {
     fetchAccounts();
   }, []);
+
+  useEffect(() => {
+    if (selectedAccountId) {
+      fetchAccountDetails(selectedAccountId);
+    }
+  }, [selectedAccountId]);
+
+  useInterval(() => {
+    if (selectedAccountId) {
+      fetchAccountDetails(selectedAccountId);
+    }
+  }, 10000); // Fetch every 10 seconds
 
   const fetchAccounts = async () => {
     try {
@@ -151,8 +164,8 @@ const SavingsAccount = () => {
           <p>Account Type: {selectedAccount.accountType}</p>
           <p>Account Number: {selectedAccount.accountNumber}</p>
           <p>Current Balance: {formatCurrency(selectedAccount.balance)} {selectedAccount.currency}</p>
-          <p>Interest Rate: {(selectedAccount.interestRate * 100).toFixed(2)}%</p>
-          <p>Projected Interest: {formatCurrency(selectedAccount.projectedInterest)} {selectedAccount.currency}</p>
+          <p>Interest Rate: {(selectedAccount.interestRate * 365 * 100).toFixed(2)}% per year</p>
+          <p>Projected Interest (next minute): {formatCurrency(selectedAccount.projectedInterest)} {selectedAccount.currency}</p>
           <p>Last Interest Applied: {new Date(selectedAccount.lastInterestApplied).toLocaleString()}</p>
         </div>
       )}

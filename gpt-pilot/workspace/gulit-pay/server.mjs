@@ -30,15 +30,14 @@ const savingsAccounts = [];
 const JWT_SECRET = process.env.JWT_SECRET || 'e5d1f8e2b3c4a5d6e7f8g9h0i1j2k3l4m5n6o7p8q9r0s1t2u3v4w5x6y7z8a9b0'; // INPUT_REQUIRED {JWT_SECRET: Secure JWT secret key}
 
 const INTEREST_RATES = {
-  'Gullit Regular Saving Account': 0.07,
-  'SME Business Account': 0.07,
-  'Commercial Account': 0.07,
-  'Etege Women Entrepreneurs Account': 0.07
+  'Gullit Regular Saving Account': 0.07 / 365, // Daily rate
+  'SME Business Account': 0.07 / 365,
+  'Commercial Account': 0.07 / 365,
+  'Etege Women Entrepreneurs Account': 0.07 / 365
 };
 
 const calculateInterest = (balance, rate) => {
-  const dailyRate = rate / 365;
-  return balance * dailyRate;
+  return balance * rate;
 };
 
 const applyInterestToAllAccounts = () => {
@@ -48,10 +47,11 @@ const applyInterestToAllAccounts = () => {
     const interest = calculateInterest(account.balance, interestRate);
     account.balance += interest;
     account.lastInterestApplied = new Date();
-    console.log(`Applied ${interest.toFixed(2)} ETB interest to account ${account.accountNumber}`);
+    console.log(`Applied ${interest.toFixed(6)} ETB interest to account ${account.accountNumber}`);
   });
 };
 
+// Change this back to a realistic daily interval after testing
 schedule.scheduleJob('0 0 * * *', applyInterestToAllAccounts);
 
 app.post('/api/register', (req, res) => {
